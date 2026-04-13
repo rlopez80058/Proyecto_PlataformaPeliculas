@@ -4,51 +4,100 @@
     ViewData["Title"] = "Detalle de Película";
 }
 
-<h2>@Model.Title</h2>
+<div class="container mt-4">
+    <div class="mb-3">
+        <a asp-action="Index" class="btn btn-outline-secondary">← Volver al explorador</a>
+    </div>
 
-@if (!string.IsNullOrWhiteSpace(Model.PosterPath))
-{
-    <img src="@($"https://image.tmdb.org/t/p/w300{Model.PosterPath}")" alt="@Model.Title" />
-}
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="row g-0">
+            <div class="col-md-4 bg-light text-center">
+                @if (!string.IsNullOrWhiteSpace(Model.PosterPath))
+                {
+                    <img src="@($"https://image.tmdb.org/t/p/w400{Model.PosterPath}")"
+                         alt="@Model.Title"
+                         class="img-fluid rounded-start"
+                         style="max-height:600px; object-fit:cover;" />
+                }
+                else
+                {
+                    <div class="d-flex align-items-center justify-content-center h-100 p-3 text-muted">
+                        Sin imagen
+                    </div>
+                }
+            </div>
 
-<p><strong>Título original:</strong> @Model.OriginalTitle</p>
-<p><strong>Fecha:</strong> @Model.ReleaseDate</p>
-<p><strong>Idioma:</strong> @Model.OriginalLanguage</p>
-<p><strong>Géneros:</strong>
-    @if (Model.Genres != null && Model.Genres.Any())
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">@Model.Title</h2>
+
+                    <p><strong>Título original:</strong> @(string.IsNullOrWhiteSpace(Model.OriginalTitle) ? "No disponible" : Model.OriginalTitle)</p>
+                    <p><strong>Fecha:</strong> @(string.IsNullOrWhiteSpace(Model.ReleaseDate) ? "No disponible" : Model.ReleaseDate)</p>
+                    <p><strong>Idioma:</strong> @(string.IsNullOrWhiteSpace(Model.OriginalLanguage) ? "No disponible" : Model.OriginalLanguage)</p>
+                    <p><strong>Calificación:</strong> @Model.VoteAverage</p>
+
+                    <p>
+                        <strong>Géneros:</strong>
+                        @if (Model.Genres != null && Model.Genres.Any())
+                        {
+                            @string.Join(", ", Model.Genres.Select(g => g.Name))
+                        }
+                        else
+                        {
+                            <span>No disponible</span>
+                        }
+                    </p>
+
+                    <hr />
+
+                    <p>@(string.IsNullOrWhiteSpace(Model.Overview) ? "Sin descripción disponible." : Model.Overview)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mb-3">Recomendaciones</h3>
+
+    @if (Model.Recommendations != null && Model.Recommendations.Any())
     {
-        @string.Join(", ", Model.Genres.Select(g => g.Name))
+        <div class="row">
+            @foreach (var movie in Model.Recommendations)
+            {
+                <div class="col-md-4 col-lg-3 mb-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        @if (!string.IsNullOrWhiteSpace(movie.PosterPath))
+                        {
+                            <img src="@($"https://image.tmdb.org/t/p/w300{movie.PosterPath}")"
+                                 alt="@movie.Title"
+                                 class="card-img-top"
+                                 style="height:350px; object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center justify-content-center bg-light text-muted" style="height:350px;">
+                                Sin imagen
+                            </div>
+                        }
+
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">@movie.Title</h5>
+                            <p class="card-text">@(string.IsNullOrWhiteSpace(movie.ReleaseDate) ? "No disponible" : movie.ReleaseDate)</p>
+
+                            <div class="mt-auto">
+                                <a asp-action="Details" asp-route-id="@movie.Id" class="btn btn-outline-primary w-100">
+                                    Ver detalle
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
     }
     else
     {
-        <span>No disponible</span>
-    }
-</p>
-<p><strong>Calificación:</strong> @Model.VoteAverage</p>
-<p>@Model.Overview</p>
-
-<hr />
-
-<h3>Recomendaciones</h3>
-
-@if (Model.Recommendations != null && Model.Recommendations.Any())
-{
-    @foreach (var movie in Model.Recommendations)
-    {
-        <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
-            <h4>@movie.Title</h4>
-
-            @if (!string.IsNullOrWhiteSpace(movie.PosterPath))
-            {
-                <img src="@($"https://image.tmdb.org/t/p/w200{movie.PosterPath}")" alt="@movie.Title" />
-            }
-
-            <p>@movie.ReleaseDate</p>
-            <a asp-action="Details" asp-route-id="@movie.Id">Ver detalle</a>
+        <div class="alert alert-secondary">
+            No hay recomendaciones disponibles.
         </div>
     }
-}
-else
-{
-    <p>No hay recomendaciones disponibles.</p>
-}
+</div>

@@ -4,115 +4,161 @@
     ViewData["Title"] = "Explorador de Películas";
 }
 
-<h2>Explorador de Películas</h2>
+<div class="container mt-4">
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h1 class="mb-4 text-center">Explorador de Películas</h1>
 
-<form asp-action="Search" method="get">
-    <div>
-        <label>Nombre:</label>
-        <input type="text" name="query" value="@Model.Query" />
+            <form asp-action="Search" method="get">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Nombre</label>
+                        <input type="text" name="query" value="@Model.Query" class="form-control" placeholder="Ej: Harry Potter" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Género</label>
+                        <select name="genreId" class="form-select">
+                            <option value="">-- Seleccione género --</option>
+                            @foreach (var genre in Model.Genres)
+                            {
+                                if (Model.GenreId == genre.Id)
+                                {
+                                    <option value="@genre.Id" selected>@genre.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@genre.Id">@genre.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Idioma</label>
+                        <select name="language" class="form-select">
+                            <option value="">-- Seleccione idioma --</option>
+                            @foreach (var lang in Model.Languages)
+                            {
+                                if (Model.Language == lang)
+                                {
+                                    <option value="@lang" selected>@lang</option>
+                                }
+                                else
+                                {
+                                    <option value="@lang">@lang</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Año</label>
+                        <select name="year" class="form-select">
+                            <option value="">-- Seleccione año --</option>
+                            @foreach (var y in Model.Years)
+                            {
+                                if (Model.Year == y)
+                                {
+                                    <option value="@y" selected>@y</option>
+                                }
+                                else
+                                {
+                                    <option value="@y">@y</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="w-100 d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Buscar</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Limpiar / Volver</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <div>
-        <label>Género:</label>
-        <select name="genreId">
-            <option value="">-- Seleccione género --</option>
-            @foreach (var genre in Model.Genres)
-            {
-                if (Model.GenreId == genre.Id)
-                {
-                    <option value="@genre.Id" selected>@genre.Name</option>
-                }
-                else
-                {
-                    <option value="@genre.Id">@genre.Name</option>
-                }
-            }
-        </select>
-    </div>
-
-    <div>
-        <label>Idioma:</label>
-        <select name="language">
-            <option value="">-- Seleccione idioma --</option>
-            @foreach (var lang in Model.Languages)
-            {
-                if (Model.Language == lang)
-                {
-                    <option value="@lang" selected>@lang</option>
-                }
-                else
-                {
-                    <option value="@lang">@lang</option>
-                }
-            }
-        </select>
-    </div>
-
-    <div>
-        <label>Año:</label>
-        <select name="year">
-            <option value="">-- Seleccione año --</option>
-            @foreach (var y in Model.Years)
-            {
-                if (Model.Year == y)
-                {
-                    <option value="@y" selected>@y</option>
-                }
-                else
-                {
-                    <option value="@y">@y</option>
-                }
-            }
-        </select>
-    </div>
-
-    <button type="submit">Buscar</button>
-</form>
-
-<hr />
-
-@if (Model.Results != null && Model.Results.Any())
-{
-    <h3>Resultados</h3>
-
-    @foreach (var movie in Model.Results)
+    @if (Model.Results != null && Model.Results.Any())
     {
-        <div style="border:1px solid #ccc; padding:12px; margin-bottom:12px;">
-            <h4>@movie.Title</h4>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="mb-0">Resultados</h3>
+            <span class="badge bg-dark">@Model.Results.Count resultado(s)</span>
+        </div>
 
-            @if (!string.IsNullOrWhiteSpace(movie.PosterPath))
+        <div class="row">
+            @foreach (var movie in Model.Results)
             {
-                <img src="@($"https://image.tmdb.org/t/p/w200{movie.PosterPath}")" alt="@movie.Title" />
-            }
+                var genreNames = Model.Genres
+                .Where(g => movie.GenreIds.Contains(g.Id))
+                .Select(g => g.Name)
+                .ToList();
 
-            <p><strong>Fecha:</strong> @movie.ReleaseDate</p>
-            <p><strong>Idioma:</strong> @movie.OriginalLanguage</p>
-            <p>
-                <strong>Géneros:</strong>
-                @{
-                    var genreNames = Model.Genres
-                    .Where(g => movie.GenreIds.Contains(g.Id))
-                    .Select(g => g.Name)
-                    .ToList();
-                }
+                <div class="col-lg-6 mb-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="row g-0 h-100">
+                            <div class="col-md-4 text-center bg-light">
+                                @if (!string.IsNullOrWhiteSpace(movie.PosterPath))
+                                {
+                                    <img src="@($"https://image.tmdb.org/t/p/w300{movie.PosterPath}")"
+                                         alt="@movie.Title"
+                                         class="img-fluid rounded-start"
+                                         style="height:100%; object-fit:cover; max-height:420px;" />
+                                }
+                                else
+                                {
+                                    <div class="d-flex align-items-center justify-content-center h-100 p-3 text-muted">
+                                        Sin imagen
+                                    </div>
+                                }
+                            </div>
 
-                @if (genreNames.Any())
-                {
-                    @string.Join(", ", genreNames)
-                }
-                else
-                {
-                    <span>No disponible</span>
-                }
-            </p>
-            <p><strong>Calificación:</strong> @movie.VoteAverage</p>
-            <p>@movie.Overview</p>
+                            <div class="col-md-8">
+                                <div class="card-body d-flex flex-column h-100">
+                                    <h4 class="card-title">@movie.Title</h4>
 
-            <a asp-action="Details" asp-route-id="@movie.Id">Ver detalle</a>
+                                    <p class="mb-2"><strong>Fecha:</strong> @(string.IsNullOrWhiteSpace(movie.ReleaseDate) ? "No disponible" : movie.ReleaseDate)</p>
+                                    <p class="mb-2"><strong>Idioma:</strong> @(string.IsNullOrWhiteSpace(movie.OriginalLanguage) ? "No disponible" : movie.OriginalLanguage)</p>
+
+                                    <p class="mb-2">
+                                        <strong>Géneros:</strong>
+                                        @if (genreNames.Any())
+                                        {
+                                            @string.Join(", ", genreNames)
+                                        }
+                                        else
+                                        {
+                                            <span>No disponible</span>
+                                        }
+                                </p>
+
+                                <p class="mb-3"><strong>Calificación:</strong> @movie.VoteAverage</p>
+
+                                <p class="card-text flex-grow-1">
+                                    @(string.IsNullOrWhiteSpace(movie.Overview)
+                                                                    ? "Sin descripción disponible."
+                                                                    : movie.Overview)
+                            </p>
+
+                                    <div class="mt-3">
+                                        <a asp-action="Details" asp-route-id="@movie.Id" class="btn btn-outline-primary">
+                                            Ver detalle
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                }
         </div>
     }
-}
-else
-{
-    <p>No hay resultados para mostrar.</p>
-}
+    else
+    {
+        <div class="alert alert-secondary text-center shadow-sm">
+            No hay resultados para mostrar.
+        </div>
+    }
+</div>
