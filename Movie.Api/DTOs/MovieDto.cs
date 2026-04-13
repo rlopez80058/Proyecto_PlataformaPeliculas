@@ -2,19 +2,19 @@
 
 namespace Movie.Api.DTOs
 {
-    public class TmdbMovieDetailDto
+    public class MovieDto
     {
         public int Id { get; set; }
 
-        public string Title { get; set; } = "";
+        public string Title { get; set; } = string.Empty;
 
         [JsonPropertyName("original_title")]
-        public string OriginalTitle { get; set; } = "";
+        public string OriginalTitle { get; set; } = string.Empty;
 
-        public string Overview { get; set; } = "";
+        public string Overview { get; set; } = string.Empty;
 
         [JsonPropertyName("original_language")]
-        public string OriginalLanguage { get; set; } = "";
+        public string OriginalLanguage { get; set; } = string.Empty;
 
         [JsonPropertyName("poster_path")]
         public string? PosterPath { get; set; }
@@ -25,14 +25,14 @@ namespace Movie.Api.DTOs
         [JsonPropertyName("release_date")]
         public string? ReleaseDate { get; set; }
 
-        public decimal Popularity { get; set; }
+        public double Popularity { get; set; }
 
         [JsonPropertyName("vote_average")]
-        public decimal VoteAverage { get; set; }
+        public double VoteAverage { get; set; }
 
-        public int Runtime { get; set; }
+        [JsonPropertyName("genre_ids")]
+        public List<int> GenreIds { get; set; } = new();
 
-        [JsonPropertyName("genres")]
-        public List<TmdbGenreDto> Genres { get; set; } = new();
+
     }
 }

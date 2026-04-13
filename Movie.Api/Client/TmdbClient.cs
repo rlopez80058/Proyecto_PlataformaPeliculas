@@ -41,5 +41,17 @@ namespace Movie.Api.Client
         {
             return await _http.GetFromJsonAsync<TmdbMovieDetailDto>($"movie/{tmdbId}");
         }
+
+        public async Task<TmdbSearchResponseDto?> GetRecommendationsAsync(int tmdbId, int page = 1)
+        {
+            var url = $"movie/{tmdbId}/recommendations?page={page}";
+            return await _http.GetFromJsonAsync<TmdbSearchResponseDto>(url);
+        }
+
+        public async Task<TmdbGenreResponseDto?> GetGenresAsync()
+        {
+            return await _http.GetFromJsonAsync<TmdbGenreResponseDto>("genre/movie/list");
+        }
+
     }
 }

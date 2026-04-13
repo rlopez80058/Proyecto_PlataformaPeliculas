@@ -1,0 +1,54 @@
+﻿@model Proyecto_PlataformaPeliculas.Models.MovieDetailViewModel
+
+@{
+    ViewData["Title"] = "Detalle de Película";
+}
+
+<h2>@Model.Title</h2>
+
+@if (!string.IsNullOrWhiteSpace(Model.PosterPath))
+{
+    <img src="@($"https://image.tmdb.org/t/p/w300{Model.PosterPath}")" alt="@Model.Title" />
+}
+
+<p><strong>Título original:</strong> @Model.OriginalTitle</p>
+<p><strong>Fecha:</strong> @Model.ReleaseDate</p>
+<p><strong>Idioma:</strong> @Model.OriginalLanguage</p>
+<p><strong>Géneros:</strong>
+    @if (Model.Genres != null && Model.Genres.Any())
+    {
+        @string.Join(", ", Model.Genres.Select(g => g.Name))
+    }
+    else
+    {
+        <span>No disponible</span>
+    }
+</p>
+<p><strong>Calificación:</strong> @Model.VoteAverage</p>
+<p>@Model.Overview</p>
+
+<hr />
+
+<h3>Recomendaciones</h3>
+
+@if (Model.Recommendations != null && Model.Recommendations.Any())
+{
+    @foreach (var movie in Model.Recommendations)
+    {
+        <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+            <h4>@movie.Title</h4>
+
+            @if (!string.IsNullOrWhiteSpace(movie.PosterPath))
+            {
+                <img src="@($"https://image.tmdb.org/t/p/w200{movie.PosterPath}")" alt="@movie.Title" />
+            }
+
+            <p>@movie.ReleaseDate</p>
+            <a asp-action="Details" asp-route-id="@movie.Id">Ver detalle</a>
+        </div>
+    }
+}
+else
+{
+    <p>No hay recomendaciones disponibles.</p>
+}
