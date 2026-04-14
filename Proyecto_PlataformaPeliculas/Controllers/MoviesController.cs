@@ -70,6 +70,10 @@ namespace Proyecto_PlataformaPeliculas.Controllers
             return View(movie);
         }
 
+        public IActionResult Library()
+        {
+            return View();
+        }
 
         private List<string> GetLanguages()
         {
@@ -87,7 +91,5 @@ namespace Proyecto_PlataformaPeliculas.Controllers
         "ru"  // Ruso
     };
         }
-
-
     }
 }

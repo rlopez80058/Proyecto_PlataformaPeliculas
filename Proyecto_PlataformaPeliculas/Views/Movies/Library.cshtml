@@ -1,0 +1,179 @@
+﻿@{
+    ViewData["Title"] = "Mi Biblioteca";
+}
+
+<h2 class="mb-4"> Mi Biblioteca</h2>
+
+<div class="mb-3">
+    <button class="btn btn-outline-primary" onclick="loadLibrary()">Todos</button>
+    <button class="btn btn-outline-warning" onclick="loadFavorites()">⭐ Favoritos</button>
+    <button class="btn btn-outline-success" onclick="loadWithComments()">💬 Con comentarios</button>
+</div>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>Película</th>
+            <th>Estado</th>
+            <th>Rating</th>
+            <th>Comentario</th>
+            <th>Favorito</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody id="libraryTable"></tbody>
+</table>
+
+<script>
+    const api = "https://localhost:7174";
+
+    async function loadLibrary() {
+        const res = await fetch(`${api}/api/Library`);
+        const data = await res.json();
+        render(data);
+    }
+
+    async function loadFavorites() {
+        const res = await fetch(`${api}/api/Library`);
+        const data = await res.json();
+        render(data.filter(x => x.isFavorite));
+    }
+
+    async function loadWithComments() {
+        const res = await fetch(`${api}/api/Library`);
+        const data = await res.json();
+        render(data.filter(x => x.comment));
+    }
+
+    function render(data) {
+        const table = document.getElementById("libraryTable");
+        table.innerHTML = "";
+
+        data.forEach(item => {
+            table.innerHTML += `
+                <tr>
+                    <td class="d-flex align-items-center gap-2">
+                        <img src="${item.movie?.posterPath
+                            ? `https://image.tmdb.org/t/p/w200${item.movie.posterPath}`
+                            : 'https://via.placeholder.com/50x75'}"
+                             style="width:50px; height:75px; object-fit:cover; border-radius:5px;" />
+                        <span>${item.movie?.title || "Sin título"}</span>
+                    </td>
+
+                    
+                    <td>
+                        <select id="status-${item.id}" class="form-select form-select-sm">
+                            <option value="1" ${item.status == 1 ? "selected" : ""}>Pendiente</option>
+                            <option value="2" ${item.status == 2 ? "selected" : ""}>Viendo</option>
+                            <option value="3" ${item.status == 3 ? "selected" : ""}>Vista</option>
+                            <option value="4" ${item.status == 4 ? "selected" : ""}>Abandonada</option>
+                        </select>
+                    </td>
+
+                   
+                    <td>
+                        <input type="number" id="rating-${item.id}"
+                               class="form-control form-control-sm"
+                               value="${item.rating ?? ""}" min="1" max="5" />
+                    </td>
+
+                    
+                    <td>
+                        <input type="text" id="comment-${item.id}"
+                               class="form-control form-control-sm"
+                               value="${item.comment ?? ""}" />
+                    </td>
+
+                    <td>${item.isFavorite ? "⭐" : ""}</td>
+
+                    <td>
+                       
+                        <button class="btn btn-sm btn-success" onclick="saveChanges(${item.id})">
+                            ✏️
+                        </button>
+
+                        <button class="btn btn-sm btn-warning" onclick="toggleFavorite(${item.id})">
+                            ⭐
+                        </button>
+
+                        <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})">
+                            🗑️
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function getStatus(status) {
+        switch (status) {
+            case 1: return "Pendiente";
+            case 2: return "Viendo";
+            case 3: return "Vista";
+            case 4: return "Abandonada";
+            default: return "";
+        }
+    }
+
+    async function toggleFavorite(id) {
+        const res = await fetch(`${api}/api/Library/${id}/favorite`, {
+            method: "PUT"
+        });
+
+        if (!res.ok) {
+            alert("Error al cambiar favorito");
+            return;
+        }
+
+        loadLibrary();
+    }
+
+    async function deleteItem(id) {
+        if (!confirm("¿Seguro que quieres eliminar esta película?")) return;
+
+        const res = await fetch(`${api}/api/Library/${id}`, {
+            method: "DELETE"
+        });
+
+        if (!res.ok) {
+            alert("Error al eliminar");
+            return;
+        }
+
+        loadLibrary();
+    }
+
+    async function saveChanges(id) {
+        const status = document.getElementById(`status-${id}`).value;
+        const rating = document.getElementById(`rating-${id}`).value;
+        const comment = document.getElementById(`comment-${id}`).value;
+
+        const body = {
+            status: parseInt(status),
+            rating: rating ? parseInt(rating) : null,
+            comment: comment
+        };
+
+        const res1 = await fetch(`${api}/api/Library/${id}/status`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+
+        const res2 = await fetch(`${api}/api/Library/${id}/review`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+
+        if (!res1.ok || !res2.ok) {
+            alert("Error al guardar cambios");
+            return;
+        }
+
+        alert("Guardado");
+        loadLibrary();
+    }
+
+    loadLibrary();
+</script>

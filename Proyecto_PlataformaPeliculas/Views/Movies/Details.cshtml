@@ -51,6 +51,37 @@
                     <hr />
 
                     <p>@(string.IsNullOrWhiteSpace(Model.Overview) ? "Sin descripción disponible." : Model.Overview)</p>
+
+                    <div class="mt-3">
+                        <button class="btn btn-success" onclick="addToLibrary(@Model.Id)">
+                            ➕ Agregar a biblioteca
+                        </button>
+                    </div>
+
+                    <div class="mt-2">
+                        <button class="btn btn-warning" onclick="toggleFavorite()">
+                            ⭐ Favorito
+                        </button>
+                    </div>
+
+                    <div class="mt-2">
+                        <select class="form-select" onchange="changeStatus(this.value)">
+                            <option value="1">Pendiente</option>
+                            <option value="2">Viendo</option>
+                            <option value="3">Vista</option>
+                            <option value="4">Abandonada</option>
+                        </select>
+                    </div>
+
+                    <div class="mt-3">
+                        <input type="number" id="rating" class="form-control mb-2" placeholder="Rating (1-5)" />
+                        <input type="text" id="comment" class="form-control mb-2" placeholder="Comentario" />
+
+                        <button class="btn btn-primary" onclick="addReview()">
+                            💬 Guardar comentario
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -101,3 +132,68 @@
         </div>
     }
 </div>
+
+<script>
+    const api = "https://localhost:7174";
+
+    let currentLibraryId = null;
+
+    async function addToLibrary(tmdbId) {
+        try {
+            const res = await fetch(`${api}/api/Library`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    tmdbId: tmdbId,
+                    status: 1
+                })
+            });
+
+            const data = await res.json();
+            currentLibraryId = data.id;
+
+            alert("Agregado a biblioteca");
+        } catch (e) {
+            console.error(e);
+            alert("Error al agregar");
+        }
+    }
+
+    async function toggleFavorite() {
+        if (!currentLibraryId) return alert("Primero agrega a biblioteca");
+
+        await fetch(`${api}/api/Library/${currentLibraryId}/favorite`, {
+            method: "PUT"
+        });
+
+        alert("Favorito actualizado");
+    }
+
+    async function changeStatus(status) {
+        if (!currentLibraryId) return alert("Primero agrega a biblioteca");
+
+        await fetch(`${api}/api/Library/${currentLibraryId}/status`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: parseInt(status) })
+        });
+    }
+
+    async function addReview() {
+        if (!currentLibraryId) return alert("Primero agrega a biblioteca");
+
+        const rating = document.getElementById("rating").value;
+        const comment = document.getElementById("comment").value;
+
+        await fetch(`${api}/api/Library/${currentLibraryId}/review`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                rating: parseInt(rating),
+                comment: comment
+            })
+        });
+
+        alert("Comentario guardado");
+    }
+</script>

@@ -1,6 +1,10 @@
-﻿namespace Movie.Api.Repositories
+﻿using Movie.Api.Models;
+
+namespace Movie.Api.Repositories
 {
-    public class IMovieRepository
+    public interface IMovieRepository
     {
+        Task<Movies?> GetByTmdbIdAsync(int tmdbId);
+        Task AddAsync(Movies movie);
     }
 }

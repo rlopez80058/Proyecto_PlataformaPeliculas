@@ -1,6 +1,9 @@
-﻿namespace Movie.Api.Services
+﻿using Movie.Api.DTOs;
+
+namespace Movie.Api.Services
 {
-    public class IDashboardService
+    public interface IDashboardService
     {
+        Task<DashboardDto> GetAsync();
     }
 }

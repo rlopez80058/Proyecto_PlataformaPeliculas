@@ -7,6 +7,7 @@
         Watched = 3,
         Dropped = 4
     }
+
     public class LibraryItem
     {
         public int Id { get; set; }
@@ -15,8 +16,11 @@
         public Movies Movie { get; set; } = null!;
 
         public MovieStatus Status { get; set; } = MovieStatus.Pending;
-        public int? Rating { get; set; }  
+
+        public int? Rating { get; set; }
         public string? Comment { get; set; }
+
+        public bool IsFavorite { get; set; } = false; 
 
         public DateTime AddedAtUtc { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
