@@ -51,5 +51,12 @@ namespace Movie.Api.Repositories
             _context.Entry(item).State = EntityState.Deleted;
             await _context.SaveChangesAsync();
         }
+
+        public async Task<LibraryItem?> GetByTmdbIdAsync(int tmdbId)
+        {
+            return await _context.LibraryItems
+                .Include(x => x.Movie)
+                .FirstOrDefaultAsync(x => x.Movie != null && x.Movie.TmdbId == tmdbId);
+        }
     }
 }

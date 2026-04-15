@@ -53,10 +53,13 @@
                     <p>@(string.IsNullOrWhiteSpace(Model.Overview) ? "Sin descripción disponible." : Model.Overview)</p>
 
                     <div class="mt-3">
-                        <button class="btn btn-success" onclick="addToLibrary(@Model.Id)">
+                        <button id="btnAddLibrary" class="btn btn-success" onclick="addToLibrary(@Model.Id)">
                             ➕ Agregar a biblioteca
                         </button>
+                        <div id="libraryStatusMessage" class="form-text mt-2 text-muted"></div>
                     </div>
+
+                 
 
                     <div class="mt-2">
                         <button class="btn btn-warning" onclick="toggleFavorite()">
@@ -65,7 +68,7 @@
                     </div>
 
                     <div class="mt-2">
-                        <select class="form-select" onchange="changeStatus(this.value)">
+                        <select id="statusSelect" class="form-select" onchange="changeStatus(this.value)">
                             <option value="1">Pendiente</option>
                             <option value="2">Viendo</option>
                             <option value="3">Vista</option>
@@ -135,8 +138,84 @@
 
 <script>
     const api = "https://localhost:7174";
+    const tmdbId = @Model.Id;
 
     let currentLibraryId = null;
+
+    function updateLibraryButtonState(isInLibrary) {
+        const addButton = document.getElementById("btnAddLibrary");
+        const statusMessage = document.getElementById("libraryStatusMessage");
+
+        if (!addButton || !statusMessage) return;
+
+        if (isInLibrary) {
+            addButton.disabled = true;
+            addButton.classList.remove("btn-success");
+            addButton.classList.add("btn-secondary");
+            addButton.innerText = "✔ Ya está en tu biblioteca";
+            statusMessage.innerText = "Esta película ya fue agregada y puedes editar su estado, favorito o comentario.";
+        } else {
+            addButton.disabled = false;
+            addButton.classList.remove("btn-secondary");
+            addButton.classList.add("btn-success");
+            addButton.innerText = "➕ Agregar a biblioteca";
+            statusMessage.innerText = "";
+        }
+    }
+
+    async function loadLibraryItem() {
+        try {
+            const res = await fetch(`${api}/api/Library/tmdb/${tmdbId}`);
+
+            if (res.status === 404) {
+                updateLibraryButtonState(false);
+                return;
+            }
+
+            if (!res.ok) {
+                throw new Error("No se pudo consultar la biblioteca");
+            }
+
+            const item = await res.json();
+            currentLibraryId = item.id;
+
+            updateLibraryButtonState(true);
+
+            const statusSelect = document.getElementById("statusSelect");
+            const ratingInput = document.getElementById("rating");
+            const commentInput = document.getElementById("comment");
+
+            if (statusSelect) {
+                const statusMap = {
+                    "Pending": 1,
+                    "Watching": 2,
+                    "Watched": 3,
+                    "Dropped": 4,
+                    "Pendiente": 1,
+                    "Viendo": 2,
+                    "Vista": 3,
+                    "Abandonada": 4
+                };
+
+                if (typeof item.status === "number") {
+                    statusSelect.value = item.status;
+                } else if (statusMap[item.status] !== undefined) {
+                    statusSelect.value = statusMap[item.status];
+                }
+            }
+
+            if (ratingInput) {
+                ratingInput.value = item.rating ?? "";
+            }
+
+            if (commentInput) {
+                commentInput.value = item.comment ?? "";
+            }
+        } catch (e) {
+            console.error(e);
+            updateLibraryButtonState(false);
+        }
+    }
 
     async function addToLibrary(tmdbId) {
         try {
@@ -149,10 +228,16 @@
                 })
             });
 
+            if (!res.ok) {
+                throw new Error("No se pudo agregar la película a la biblioteca");
+            }
+
             const data = await res.json();
             currentLibraryId = data.id;
 
+            updateLibraryButtonState(true);
             alert("Agregado a biblioteca");
+            await loadLibraryItem();
         } catch (e) {
             console.error(e);
             alert("Error al agregar");
@@ -160,40 +245,79 @@
     }
 
     async function toggleFavorite() {
-        if (!currentLibraryId) return alert("Primero agrega a biblioteca");
+        if (!currentLibraryId) {
+            return alert("Primero agrega la película a biblioteca");
+        }
 
-        await fetch(`${api}/api/Library/${currentLibraryId}/favorite`, {
-            method: "PUT"
-        });
+        try {
+            const res = await fetch(`${api}/api/Library/${currentLibraryId}/favorite`, {
+                method: "PUT"
+            });
 
-        alert("Favorito actualizado");
+            if (!res.ok) {
+                throw new Error("No se pudo actualizar favorito");
+            }
+
+            alert("Favorito actualizado");
+        } catch (e) {
+            console.error(e);
+            alert("Error al actualizar favorito");
+        }
     }
 
     async function changeStatus(status) {
-        if (!currentLibraryId) return alert("Primero agrega a biblioteca");
+        if (!currentLibraryId) {
+            return alert("Primero agrega la película a biblioteca");
+        }
 
-        await fetch(`${api}/api/Library/${currentLibraryId}/status`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: parseInt(status) })
-        });
+        try {
+            const res = await fetch(`${api}/api/Library/${currentLibraryId}/status`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    status: parseInt(status)
+                })
+            });
+
+            if (!res.ok) {
+                throw new Error("No se pudo actualizar el estado");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error al actualizar estado");
+        }
     }
 
     async function addReview() {
-        if (!currentLibraryId) return alert("Primero agrega a biblioteca");
+        if (!currentLibraryId) {
+            return alert("Primero agrega la película a biblioteca");
+        }
 
-        const rating = document.getElementById("rating").value;
+        const ratingValue = document.getElementById("rating").value;
         const comment = document.getElementById("comment").value;
 
-        await fetch(`${api}/api/Library/${currentLibraryId}/review`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                rating: parseInt(rating),
-                comment: comment
-            })
-        });
+        const body = {
+            rating: ratingValue ? parseInt(ratingValue) : null,
+            comment: comment
+        };
 
-        alert("Comentario guardado");
+        try {
+            const res = await fetch(`${api}/api/Library/${currentLibraryId}/review`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+
+            if (!res.ok) {
+                throw new Error("No se pudo guardar el comentario");
+            }
+
+            alert("Comentario guardado");
+        } catch (e) {
+            console.error(e);
+            alert("Error al guardar comentario");
+        }
     }
+
+    loadLibraryItem();
 </script>

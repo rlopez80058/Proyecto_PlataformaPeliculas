@@ -22,6 +22,17 @@ namespace Movie.Api.Controllers
             return Ok(data);
         }
 
+        [HttpGet("tmdb/{tmdbId}")]
+        public async Task<IActionResult> GetByTmdbId(int tmdbId)
+        {
+            var item = await _libraryService.GetByTmdbIdAsync(tmdbId);
+
+            if (item == null)
+                return NotFound();
+
+            return Ok(item);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] SaveLibraryItemDto dto)
         {
@@ -30,9 +41,9 @@ namespace Movie.Api.Controllers
         }
 
         [HttpPut("{id}/status")]
-        public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateLibraryItemDto dto)
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateLibraryStatusDto dto)
         {
-            await _libraryService.UpdateAsync(id, dto);
+            await _libraryService.UpdateStatusAsync(id, dto);
             return Ok();
         }
 
@@ -44,13 +55,12 @@ namespace Movie.Api.Controllers
         }
 
         [HttpPut("{id}/review")]
-        public async Task<IActionResult> AddReview(int id, [FromBody] UpdateLibraryItemDto dto)
+        public async Task<IActionResult> AddReview(int id, [FromBody] UpdateLibraryReviewDto dto)
         {
-            await _libraryService.UpdateAsync(id, dto);
+            await _libraryService.UpdateReviewAsync(id, dto);
             return Ok();
         }
 
-        
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

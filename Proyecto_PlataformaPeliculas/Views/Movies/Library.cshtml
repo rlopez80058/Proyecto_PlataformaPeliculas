@@ -60,7 +60,6 @@
                         <span>${item.movie?.title || "Sin título"}</span>
                     </td>
 
-                    
                     <td>
                         <select id="status-${item.id}" class="form-select form-select-sm">
                             <option value="1" ${item.status == 1 ? "selected" : ""}>Pendiente</option>
@@ -70,14 +69,12 @@
                         </select>
                     </td>
 
-                   
                     <td>
                         <input type="number" id="rating-${item.id}"
                                class="form-control form-control-sm"
                                value="${item.rating ?? ""}" min="1" max="5" />
                     </td>
 
-                    
                     <td>
                         <input type="text" id="comment-${item.id}"
                                class="form-control form-control-sm"
@@ -87,7 +84,6 @@
                     <td>${item.isFavorite ? "⭐" : ""}</td>
 
                     <td>
-                       
                         <button class="btn btn-sm btn-success" onclick="saveChanges(${item.id})">
                             ✏️
                         </button>
@@ -148,8 +144,11 @@
         const rating = document.getElementById(`rating-${id}`).value;
         const comment = document.getElementById(`comment-${id}`).value;
 
-        const body = {
-            status: parseInt(status),
+        const statusBody = {
+            status: parseInt(status)
+        };
+
+        const reviewBody = {
             rating: rating ? parseInt(rating) : null,
             comment: comment
         };
@@ -157,13 +156,13 @@
         const res1 = await fetch(`${api}/api/Library/${id}/status`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
+            body: JSON.stringify(statusBody)
         });
 
         const res2 = await fetch(`${api}/api/Library/${id}/review`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
+            body: JSON.stringify(reviewBody)
         });
 
         if (!res1.ok || !res2.ok) {
@@ -175,5 +174,7 @@
         loadLibrary();
     }
 
-    loadLibrary();
+    document.addEventListener("DOMContentLoaded", function () {
+        loadLibrary();
+    });
 </script>

@@ -10,5 +10,7 @@ namespace Movie.Api.Repositories
         Task<List<LibraryItem>> GetAllAsync();
         Task<Movies?> GetMovieByTmdbId(int tmdbId);
         Task DeleteAsync(LibraryItem item);
+
+        Task<LibraryItem?> GetByTmdbIdAsync(int tmdbId);
     }
 }

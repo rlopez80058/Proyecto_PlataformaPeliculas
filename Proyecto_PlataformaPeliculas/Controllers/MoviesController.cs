@@ -14,11 +14,44 @@ namespace Proyecto_PlataformaPeliculas.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> Recommendations(int id)
+        {
+            var movie = await _movieService.GetMovieAsync(id);
+
+            if (movie == null)
+                return NotFound();
+
+            var recommendations = await _movieService.GetRecommendationsAsync(id);
+
+            var model = new MovieDetailViewModel
+            {
+                Id = movie.Id,
+                Title = movie.Title,
+                PosterPath = movie.PosterPath,
+                Overview = movie.Overview,
+                ReleaseDate = movie.ReleaseDate,
+                OriginalLanguage = movie.OriginalLanguage,
+                VoteAverage = movie.VoteAverage,
+                Recommendations = recommendations
+            };
+
+            return View(model);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
+            var genres = await _movieService.GetGenresAsync();
+            var results = await _movieService.SearchAsync(null, null, null, null);
+
             var model = new MovieSearchViewModel
             {
-                Genres = await _movieService.GetGenresAsync(),
+                Query = null,
+                GenreId = null,
+                Language = null,
+                Year = null,
+                Results = results,
+                Genres = genres,
                 Languages = GetLanguages(),
                 Years = GetYears()
             };
@@ -51,7 +84,6 @@ namespace Proyecto_PlataformaPeliculas.Controllers
         {
             var currentYear = DateTime.Now.Year;
 
-            // últimos 30 años 
             return Enumerable.Range(currentYear - 30, 31)
                              .OrderByDescending(y => y)
                              .ToList();
@@ -78,18 +110,18 @@ namespace Proyecto_PlataformaPeliculas.Controllers
         private List<string> GetLanguages()
         {
             return new List<string>
-    {
-        "en", // Inglés
-        "es", // Español
-        "fr", // Francés
-        "it", // Italiano
-        "de", // Alemán
-        "pt", // Portugués
-        "ja", // Japonés
-        "ko", // Coreano
-        "zh", // Chino
-        "ru"  // Ruso
-    };
+            {
+                "en",
+                "es",
+                "fr",
+                "it",
+                "de",
+                "pt",
+                "ja",
+                "ko",
+                "zh",
+                "ru"
+            };
         }
     }
 }

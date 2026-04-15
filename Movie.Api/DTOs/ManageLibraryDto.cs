@@ -3,14 +3,17 @@
 namespace Movie.Api.DTOs
 {
     public record SaveLibraryItemDto(
-    int TmdbId,
-    MovieStatus Status,
-    int? Rating,
-    string? Comment
-);
-
-    public record UpdateLibraryItemDto(
+        int TmdbId,
         MovieStatus Status,
+        int? Rating,
+        string? Comment
+    );
+
+    public record UpdateLibraryStatusDto(
+        MovieStatus Status
+    );
+
+    public record UpdateLibraryReviewDto(
         int? Rating,
         string? Comment
     );

@@ -5,8 +5,11 @@
         AddedToLibrary = 1,
         StatusChanged = 2,
         Rated = 3,
-        Commented = 4
+        Commented = 4,
+        FavoriteToggled = 5,
+        RemovedFromLibrary = 6
     }
+
     public class ActivityLog
     {
         public int Id { get; set; }

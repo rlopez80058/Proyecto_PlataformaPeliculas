@@ -10,6 +10,11 @@ builder.Services.AddHttpClient<IMovieService, MovieService>(client =>
     client.BaseAddress = new Uri("https://localhost:7174/");
 });
 
+builder.Services.AddHttpClient<IDashboardService, DashboardService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7174/");
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

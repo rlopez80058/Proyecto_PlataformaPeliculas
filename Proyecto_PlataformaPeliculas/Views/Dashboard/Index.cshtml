@@ -1,0 +1,127 @@
+﻿@model Proyecto_PlataformaPeliculas.Models.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Dashboard de la Biblioteca</h1>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Registros</h6>
+                    <h2>@Model.TotalRecords</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Pendientes</h6>
+                    <h2>@Model.TotalPending</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Viendo</h6>
+                    <h2>@Model.TotalWatching</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Vistas</h6>
+                    <h2>@Model.TotalWatched</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h3 class="mb-3">Películas más populares</h3>
+
+                    @if (Model.MostPopular != null && Model.MostPopular.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var movie in Model.MostPopular)
+                            {
+                                <div class="list-group-item d-flex align-items-center gap-3">
+                                    <img src="@(string.IsNullOrWhiteSpace(movie.PosterUrl)
+                                                                                 ? "https://via.placeholder.com/60x90"
+                                                                                 : $"https://image.tmdb.org/t/p/w200{movie.PosterUrl}")"
+                                 style="width:60px; height:90px; object-fit:cover; border-radius:6px;" />
+
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold">@movie.Title</div>
+                                        <small class="text-muted">Agregada @movie.TimesAdded vez/veces</small>
+                                    </div>
+
+                                    <a asp-controller="Movies"
+                                       asp-action="Details"
+                                       asp-route-id="@movie.TmdbId"
+                                       class="btn btn-sm btn-outline-primary">
+                                        Ver
+                                    </a>
+                                </div>
+                                                }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-secondary mb-0">
+                            No hay datos de popularidad disponibles.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h3 class="mb-3">Actividad reciente</h3>
+
+                    @if (Model.RecentActivity != null && Model.RecentActivity.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var activity in Model.RecentActivity)
+                            {
+                                <div class="list-group-item">
+                                    <div class="fw-bold">@activity.ActionType</div>
+                                    <div>@activity.Description</div>
+                                    <small class="text-muted">
+                                        @activity.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                    </small>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-secondary mb-0">
+                            No hay actividad reciente.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

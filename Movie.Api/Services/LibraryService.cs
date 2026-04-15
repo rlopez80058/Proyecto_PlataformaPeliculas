@@ -24,6 +24,28 @@ namespace Movie.Api.Services
             _tmdbClient = tmdbClient;
         }
 
+        private async Task RegisterActivityAsync(
+            ActivityType actionType,
+            LibraryItem item,
+            string description)
+        {
+            var log = new ActivityLog
+            {
+                MovieId = item.MovieId,
+                LibraryItemId = item.Id,
+                ActionType = actionType,
+                Description = description,
+                CreatedAtUtc = DateTime.UtcNow
+            };
+
+            await _activityRepository.AddAsync(log);
+        }
+
+        public async Task<LibraryItem?> GetByTmdbIdAsync(int tmdbId)
+        {
+            return await _libraryRepository.GetByTmdbIdAsync(tmdbId);
+        }
+
         public async Task<IEnumerable<LibraryItem>> GetAllAsync()
         {
             return await _libraryRepository.GetAllAsync();
@@ -59,7 +81,6 @@ namespace Movie.Api.Services
                 await _movieRepository.AddAsync(movie);
             }
 
-            
             var existing = (await _libraryRepository.GetAllAsync())
                 .FirstOrDefault(x => x.MovieId == movie.Id);
 
@@ -79,20 +100,60 @@ namespace Movie.Api.Services
 
             await _libraryRepository.AddAsync(item);
 
+            item.Movie = movie;
+
+            await RegisterActivityAsync(
+                ActivityType.AddedToLibrary,
+                item,
+                $"Se agregó '{movie.Title}' a la biblioteca con estado '{item.Status}'.");
+
             return item;
         }
 
-        public async Task UpdateAsync(int id, UpdateLibraryItemDto dto)
+        public async Task UpdateStatusAsync(int id, UpdateLibraryStatusDto dto)
         {
             var item = await _libraryRepository.GetByIdAsync(id);
             if (item == null) return;
 
+            var previousStatus = item.Status;
+
             item.Status = dto.Status;
+            item.UpdatedAtUtc = DateTime.UtcNow;
+
+            await _libraryRepository.UpdateAsync(item);
+
+            await RegisterActivityAsync(
+                ActivityType.StatusChanged,
+                item,
+                $"La película '{item.Movie.Title}' cambió de estado de '{previousStatus}' a '{item.Status}'.");
+        }
+
+        public async Task UpdateReviewAsync(int id, UpdateLibraryReviewDto dto)
+        {
+            var item = await _libraryRepository.GetByIdAsync(id);
+            if (item == null) return;
+
             item.Rating = dto.Rating;
             item.Comment = dto.Comment;
             item.UpdatedAtUtc = DateTime.UtcNow;
 
             await _libraryRepository.UpdateAsync(item);
+
+            if (dto.Rating.HasValue)
+            {
+                await RegisterActivityAsync(
+                    ActivityType.Rated,
+                    item,
+                    $"Se calificó '{item.Movie.Title}' con {dto.Rating}/5.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(dto.Comment))
+            {
+                await RegisterActivityAsync(
+                    ActivityType.Commented,
+                    item,
+                    $"Se agregó o actualizó un comentario para '{item.Movie.Title}'.");
+            }
         }
 
         public async Task ToggleFavoriteAsync(int id)
@@ -104,12 +165,24 @@ namespace Movie.Api.Services
             item.UpdatedAtUtc = DateTime.UtcNow;
 
             await _libraryRepository.UpdateAsync(item);
+
+            var actionText = item.IsFavorite ? "se marcó como favorita" : "se quitó de favoritos";
+
+            await RegisterActivityAsync(
+                ActivityType.FavoriteToggled,
+                item,
+                $"La película '{item.Movie.Title}' {actionText}.");
         }
 
         public async Task DeleteAsync(int id)
         {
             var item = await _libraryRepository.GetByIdAsync(id);
             if (item == null) return;
+
+            await RegisterActivityAsync(
+                ActivityType.RemovedFromLibrary,
+                item,
+                $"Se eliminó '{item.Movie.Title}' de la biblioteca.");
 
             await _libraryRepository.DeleteAsync(item);
         }
